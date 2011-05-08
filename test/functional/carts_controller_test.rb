@@ -40,11 +40,28 @@ class CartsControllerTest < ActionController::TestCase
   end
 
   test "should destroy cart" do
-    assert_difference('Cart.count', -1) do
-      session[:cart_id] = @cart.id
-      delete :destroy, :id => @cart.to_param
+    cart_id = @cart.id
+    session[:cart_id] = cart_id
+    delete :destroy, :id => @cart.to_param
+    
+    assert_raise ActiveRecord::RecordNotFound do
+      Cart.find(cart_id)
     end
-
+    
     assert_redirected_to store_path
+  end
+  
+  test "should destroy cart via ajax" do
+    cart_id = @cart.id
+    session[:cart_id] = cart_id
+    xhr :delete, :destroy,  :id => @cart.to_param
+    
+    assert_raise ActiveRecord::RecordNotFound do
+      Cart.find(cart_id)
+    end
+    
+    assert_select_rjs :replace_html, 'cart' do
+      assert_select 'div#cart', false
+    end
   end
 end
