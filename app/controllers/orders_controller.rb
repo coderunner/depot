@@ -30,6 +30,8 @@ class OrdersController < ApplicationController
       return
     end
     
+    @checking_out = true
+    
     @order = Order.new
 
     respond_to do |format|
