@@ -2,6 +2,7 @@ require 'test_helper'
 
 class UserStoriesTest < ActionDispatch::IntegrationTest
   fixtures :products
+  fixtures :orders
   
   # A user goes to the index page. They select a product, adding it to their
   # cart, and check out, filling in their details on the checkout form. When
@@ -57,5 +58,32 @@ class UserStoriesTest < ActionDispatch::IntegrationTest
     assert_equal ["dave@example.com"], mail.to
     assert_equal 'Sam Ruby <depot@example.com>', mail[:from].value
     assert_equal "Pragmatic Store Order Confirmation", mail.subject
+  end
+  
+  test "updating an order" do
+    #update order
+    order = orders(:one)
+    put_via_redirect "/orders/"+order.id.to_s, :order_id => order.id
+    assert_response :success
+    assert_template "show"
+    
+    #check mail
+    mail = ActionMailer::Base.deliveries.last
+    assert_equal [order.email], mail.to
+    assert_equal 'Sam Ruby <depot@example.com>', mail[:from].value
+    assert_equal "Pragmatic Store Order Shipped", mail.subject
+  end
+  
+test "updating invalid order" do
+    #update order
+    put_via_redirect "/orders/999", :order_id => "999"
+    assert_response :success
+    assert_template "index"
+    
+    #check mail
+    mail = ActionMailer::Base.deliveries.last
+    assert_equal ['felix@depot.com'], mail.to
+    assert_equal 'Sam Ruby <depot@example.com>', mail[:from].value
+    assert_equal 'Error', mail.subject
   end
 end

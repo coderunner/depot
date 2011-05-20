@@ -22,4 +22,9 @@ class Notifier < ActionMailer::Base
     
     mail :to => order.email, :subject => 'Pragmatic Store Order Shipped'
   end
+  
+  def order_error(id)
+    @id = id
+    mail :to => "felix@depot.com", :subject => 'Error'
+  end
 end

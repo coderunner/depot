@@ -67,15 +67,23 @@ class OrdersController < ApplicationController
   # PUT /orders/1
   # PUT /orders/1.xml
   def update
+    begin
     @order = Order.find(params[:id])
-
-    respond_to do |format|
-      if @order.update_attributes(params[:order])
-        format.html { redirect_to(@order, :notice => 'Order was successfully updated.') }
-        format.xml  { head :ok }
-      else
-        format.html { render :action => "edit" }
-        format.xml  { render :xml => @order.errors, :status => :unprocessable_entity }
+    rescue ActiveRecord::RecordNotFound
+      logger.error "Attempt to update an invalid order #{params[:id]}"
+      Notifier.order_error(params[:id]).deliver
+      redirect_to store_url, :notice => 'Invalid order'
+    else
+      @order.ship_date = Time.now
+      respond_to do |format|
+        if @order.update_attributes(params[:order])
+          Notifier.order_shipped(@order).deliver
+          format.html { redirect_to(@order, :notice => 'Order was successfully updated.') }
+          format.xml  { head :ok }
+        else
+          format.html { render :action => "edit" }
+          format.xml  { render :xml => @order.errors, :status => :unprocessable_entity }
+        end
       end
     end
   end
