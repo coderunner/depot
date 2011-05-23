@@ -3,6 +3,7 @@ require 'test_helper'
 class UserStoriesTest < ActionDispatch::IntegrationTest
   fixtures :products
   fixtures :orders
+  fixtures :users
   
   # A user goes to the index page. They select a product, adding it to their
   # cart, and check out, filling in their details on the checkout form. When
@@ -61,6 +62,12 @@ class UserStoriesTest < ActionDispatch::IntegrationTest
   end
   
   test "updating an order" do
+    #login
+    dave = users(:one)
+    post_via_redirect "/login", :name => dave.name, :password => 'secret'
+    assert_response :success
+    assert_template "index"
+      
     #update order
     order = orders(:one)
     put_via_redirect "/orders/"+order.id.to_s, :order_id => order.id
@@ -74,7 +81,13 @@ class UserStoriesTest < ActionDispatch::IntegrationTest
     assert_equal "Pragmatic Store Order Shipped", mail.subject
   end
   
-test "updating invalid order" do
+  test "updating invalid order" do
+    #login
+    dave = users(:one)
+    post_via_redirect "/login", :name => dave.name, :password => 'secret'
+    assert_response :success
+    assert_template "index" 
+         
     #update order
     put_via_redirect "/orders/999", :order_id => "999"
     assert_response :success
