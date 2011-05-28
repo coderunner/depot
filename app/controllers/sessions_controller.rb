@@ -5,6 +5,18 @@ class SessionsController < ApplicationController
   end
 
   def create
+    puts 'through herea'
+    if User.count.zero?
+      begin
+        puts 'through here'
+        User.create(:name => params[:name], :password => params[:password], :password_confirmation => params[:password])
+      rescue Exception => e
+        flash[:notice] = e.message
+        redirect_to login_url
+        return
+      end
+    end
+    
     if user = User.authenticate(params[:name], params[:password])
       session[:user_id] = user.id
       redirect_to admin_url
