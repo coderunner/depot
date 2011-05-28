@@ -5,10 +5,8 @@ class SessionsController < ApplicationController
   end
 
   def create
-    puts 'through herea'
     if User.count.zero?
       begin
-        puts 'through here'
         User.create(:name => params[:name], :password => params[:password], :password_confirmation => params[:password])
       rescue Exception => e
         flash[:notice] = e.message
